@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:petparent/data/repository/global_repository.dart';
 
-import 'bloc/list_loader_bloc.dart';
+import '../bloc/list_loader_bloc.dart';
 
 class ListScreen extends StatelessWidget {
   const ListScreen({Key? key}) : super(key: key);
