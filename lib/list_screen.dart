@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:petparent/data/repository/global_repository.dart';
 
 import 'bloc/list_loader_bloc.dart';
 
@@ -8,7 +9,7 @@ class ListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ListLoaderBloc(),
+      create: (context) => ListLoaderBloc(GRepository()),
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(

@@ -1,22 +1,19 @@
 import 'package:bloc/bloc.dart';
-import 'package:dio/dio.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:petparent/data/repository/global_repository.dart';
 
 part 'list_loader_event.dart';
 part 'list_loader_state.dart';
 
 class ListLoaderBloc extends Bloc<ListLoaderEvent, ListLoaderState> {
-  ListLoaderBloc() : super(ListLoaderInitial()) {
+  final IRepository gRepository;
+  ListLoaderBloc(this.gRepository) : super(ListLoaderInitial()) {
     on<ListLoaderEvent>((event, emit) async {
       if (event is ListLoaderStart) {
-        final dio = Dio();
-
         try {
-          final res = await dio.get("http://jsonplaceholder.typicode.com/posts");
-          if (res.statusCode != 200) {
-            throw Exception(res.statusMessage);
-          }
-          emit(ListLoaderDone(res.data));
+          final data = await gRepository.getList();
+          emit(ListLoaderDone(data));
         } catch (e) {
           emit(ListLoaderError(e.toString()));
         }

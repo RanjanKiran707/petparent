@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:petparent/bloc/image_loader_bloc.dart';
+import 'package:petparent/data/repository/global_repository.dart';
 import 'package:petparent/list_screen.dart';
 
 Future<void> main() async {
@@ -35,7 +36,7 @@ class _FirstPageState extends State<FirstPage> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     return SafeArea(
       child: BlocProvider(
-        create: (context) => ImageLoaderBloc(),
+        create: (context) => ImageLoaderBloc(GRepository())..add(ImageStart()),
         child: Builder(
           builder: (context) {
             return Scaffold(
