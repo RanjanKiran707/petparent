@@ -15,8 +15,11 @@ import 'package:petparent/data/repository/global_repository.dart';
 
 class MockRepo implements IRepository {
   @override
-  Future<Uint8List> getImage() {
-    return Future.value(Uint8List.fromList([1, 2]));
+  Future<List> getMedia() {
+    return Future.value(List.from([
+      Type.image,
+      Uint8List.fromList([1, 2])
+    ]));
   }
 
   @override
@@ -30,12 +33,12 @@ void main() {
   setUp(() {
     gRepository = MockRepo();
   });
-  blocTest<ImageLoaderBloc, ImageLoaderState>(
+  blocTest<MediaBloc, MediaState>(
     'Image start event complete with image loaded or error state',
-    build: () => ImageLoaderBloc(gRepository),
-    act: (bloc) => bloc.add(ImageStart()),
-    expect: () => <ImageLoaderState>[
-      ImageLoaderLoaded(Uint8List.fromList([1, 2]))
+    build: () => MediaBloc(gRepository),
+    act: (bloc) => bloc.add(MediaStartE()),
+    expect: () => <MediaState>[
+      MediaImageLoaded(Uint8List.fromList([1, 2]))
     ],
   );
 

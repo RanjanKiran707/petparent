@@ -1,32 +1,36 @@
 part of 'image_loader_bloc.dart';
 
 @immutable
-abstract class ImageLoaderState extends Equatable {}
+abstract class MediaState extends Equatable {}
 
-class ImageLoaderInitial extends ImageLoaderState {
+class MediaLoading extends MediaState {
   @override
   List<Object?> get props => [];
 }
 
-class ImageLoaderLoaded extends ImageLoaderState {
+class MediaImageLoaded extends MediaState {
   final Uint8List ans;
 
-  ImageLoaderLoaded(this.ans);
+  MediaImageLoaded(this.ans);
 
   @override
   List<Object?> get props => [ans];
 }
 
-class ImageLoaderError extends ImageLoaderState {
+class MediaVideoLoaded extends MediaState {
+  final VideoPlayerController videoPlayerController;
+
+  MediaVideoLoaded(this.videoPlayerController);
+
+  @override
+  List<Object?> get props => [];
+}
+
+class MediaError extends MediaState {
   final String exception;
 
-  ImageLoaderError(this.exception);
+  MediaError(this.exception);
 
   @override
   List<Object?> get props => [exception];
-}
-
-class ImageLoaderSaved extends ImageLoaderState {
-  @override
-  List<Object?> get props => [];
 }

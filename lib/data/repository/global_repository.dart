@@ -1,9 +1,13 @@
-import 'dart:typed_data';
-
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+
+enum Type {
+  image,
+  video,
+}
 
 abstract class IRepository {
-  Future<Uint8List> getImage();
+  Future<List> getMedia();
 
   Future<List> getList();
 }
@@ -11,7 +15,7 @@ abstract class IRepository {
 class GRepository implements IRepository {
   final dio = Dio();
   @override
-  Future<Uint8List> getImage() async {
+  Future<List> getMedia() async {
     final res = await dio.get("https://random.dog/woof.json");
     if (res.statusCode != 200) {
       throw Exception("Failed Request = ${res.statusCode}");
@@ -20,17 +24,22 @@ class GRepository implements IRepository {
     final dataMap = Map.from(res.data);
 
     String url = dataMap["url"];
+    debugPrint(url);
+    late Type type;
     final RegExp regExp = RegExp(r"\.mp4|\.webm");
-    if (regExp.hasMatch(url)) {
-      throw Exception("Not Image File");
+
+    type = regExp.hasMatch(url) ? Type.video : Type.image;
+
+    if (type == Type.image) {
+      final res1 = await dio.get(url, options: Options(responseType: ResponseType.bytes));
+
+      if (res1.statusCode != 200) {
+        throw Exception("Failed Request = ${res.statusCode}");
+      }
+      return [type, res1.data];
     }
 
-    final res1 = await dio.get(url, options: Options(responseType: ResponseType.bytes));
-
-    if (res1.statusCode != 200) {
-      throw Exception("Failed Request = ${res.statusCode}");
-    }
-    return res1.data;
+    return [type, url];
   }
 
   @override

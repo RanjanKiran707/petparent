@@ -2,32 +2,36 @@ import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:bloc/bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:petparent/data/repository/global_repository.dart';
+import 'package:video_player/video_player.dart';
 
 part 'image_loader_event.dart';
 part 'image_loader_state.dart';
 
-class ImageLoaderBloc extends Bloc<ImageLoaderEvent, ImageLoaderState> {
-  late Uint8List image;
-
+class MediaBloc extends Bloc<MediaEvent, MediaState> {
   final IRepository gRepository;
-  ImageLoaderBloc(this.gRepository) : super(ImageLoaderInitial()) {
-    on<ImageLoaderEvent>((event, emit) async {
-      if (event is ImageStart) {
-        if (state is! ImageLoaderInitial) {
-          emit(ImageLoaderInitial());
+  MediaBloc(this.gRepository) : super(MediaLoading()) {
+    on<MediaEvent>((event, emit) async {
+      if (event is MediaStartE) {
+        if (state is! MediaLoading) {
+          emit(MediaLoading());
+        }
+        if (state is MediaVideoLoaded) {
+          (state as MediaVideoLoaded).videoPlayerController.dispose();
         }
         try {
-          image = await gRepository.getImage();
-          emit(ImageLoaderLoaded(image));
+          final media = await gRepository.getMedia();
+          if (media[0] == Type.image) {
+            emit(MediaImageLoaded(media[1]));
+            return;
+          }
+          final vidController = VideoPlayerController.network(media[1]);
+          await vidController.initialize();
+          emit(MediaVideoLoaded(vidController));
         } catch (e) {
-          emit(ImageLoaderError(e.toString()));
+          emit(MediaError(e.toString()));
+          debugPrintStack();
         }
-      } else if (event is ImageSave) {
-        await Hive.box("image").clear();
-        await Hive.box("image").add(image);
-        emit(ImageLoaderSaved());
       }
     });
   }

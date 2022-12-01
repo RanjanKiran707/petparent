@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:petparent/bloc/image_loader_bloc.dart';
 import 'package:petparent/data/repository/global_repository.dart';
 import 'package:petparent/views/list_screen.dart';
+import 'package:video_player/video_player.dart';
 
 class FirstPage extends StatefulWidget {
   const FirstPage({Key? key}) : super(key: key);
@@ -29,7 +32,7 @@ class _FirstPageState extends State<FirstPage> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     return SafeArea(
       child: BlocProvider(
-        create: (context) => ImageLoaderBloc(GRepository())..add(ImageStart()),
+        create: (context) => MediaBloc(GRepository())..add(MediaStartE()),
         child: Builder(
           builder: (context) {
             return Scaffold(
@@ -38,7 +41,7 @@ class _FirstPageState extends State<FirstPage> with SingleTickerProviderStateMix
                 actions: [
                   IconButton(
                     onPressed: () {
-                      context.read<ImageLoaderBloc>().add(ImageStart());
+                      context.read<MediaBloc>().add(MediaStartE());
                     },
                     icon: const Icon(Icons.refresh),
                   ),
@@ -52,8 +55,15 @@ class _FirstPageState extends State<FirstPage> with SingleTickerProviderStateMix
                       CurvedAnimation(parent: controller, curve: Curves.easeOutCubic),
                     ),
                     child: FloatingActionButton.extended(
-                      onPressed: () {
-                        context.read<ImageLoaderBloc>().add(ImageSave());
+                      onPressed: () async {
+                        final ImagePicker imagePicker = ImagePicker();
+                        final file = await imagePicker.pickImage(source: ImageSource.gallery);
+                        if (file == null) {
+                          return;
+                        }
+                        await Hive.box("image").clear();
+                        await Hive.box("image").add(await file.readAsBytes());
+                        Navigator.of(context).push(MaterialPageRoute(builder: ((context) => const ListScreen())));
                       },
                       label: const Text("Next"),
                       icon: const Icon(Icons.arrow_forward),
@@ -63,35 +73,40 @@ class _FirstPageState extends State<FirstPage> with SingleTickerProviderStateMix
               ),
               body: SizedBox.expand(
                 child: Center(
-                  child: BlocConsumer<ImageLoaderBloc, ImageLoaderState>(
+                  child: BlocConsumer<MediaBloc, MediaState>(
                     listener: (context, state) {
-                      if (state is ImageLoaderLoaded) {
+                      if (state is MediaImageLoaded) {
                         controller.forward();
                       }
-                      if (state is ImageLoaderInitial && controller.isCompleted) {
+                      if (state is MediaLoading && controller.isCompleted) {
                         controller.reverse();
                       }
-                      if (state is ImageLoaderSaved) {
-                        Navigator.of(context).push(MaterialPageRoute(builder: ((context) => const ListScreen())));
-                      }
                     },
-                    buildWhen: (prev, cur) {
-                      return cur is! ImageLoaderSaved;
-                    },
-                    bloc: context.read<ImageLoaderBloc>(),
+                    bloc: context.read<MediaBloc>(),
                     builder: (BuildContext context, state) {
-                      if (state is ImageLoaderInitial) {
+                      if (state is MediaLoading) {
                         return const CircularProgressIndicator();
                       }
-                      if (state is ImageLoaderLoaded) {
-                        debugPrint(state.ans.length.toString());
+                      if (state is MediaImageLoaded) {
                         return Image.memory(
                           state.ans,
                           height: MediaQuery.of(context).size.height / 2,
+                          fit: BoxFit.fill,
                         );
                       }
-                      if (state is ImageLoaderError) {
+                      if (state is MediaError) {
                         return Text((state).exception);
+                      }
+
+                      if (state is MediaVideoLoaded) {
+                        state.videoPlayerController.play();
+                        return SizedBox(
+                          height: MediaQuery.of(context).size.height / 2,
+                          width: state.videoPlayerController.value.aspectRatio * MediaQuery.of(context).size.height / 2,
+                          child: VideoPlayer(
+                            state.videoPlayerController,
+                          ),
+                        );
                       }
                       return const SizedBox.shrink();
                     },

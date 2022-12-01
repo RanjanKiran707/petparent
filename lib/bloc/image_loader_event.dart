@@ -1,8 +1,6 @@
 part of 'image_loader_bloc.dart';
 
 @immutable
-abstract class ImageLoaderEvent {}
+abstract class MediaEvent {}
 
-class ImageStart extends ImageLoaderEvent {}
-
-class ImageSave extends ImageLoaderEvent {}
+class MediaStartE extends MediaEvent {}
